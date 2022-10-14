@@ -18,12 +18,16 @@ class _LoginState extends State<Login> {
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
   TextEditingController txtEmail = TextEditingController();
   TextEditingController txtPassword = TextEditingController();
+  bool loading = false;
 
   void _loginUser() async {
     ApiResponse response = await login(txtEmail.text, txtPassword.text);
     if (response.error == null) {
       _saveAndRedirectToHome(response.data as User);
     } else {
+      setState(() {
+        loading = false;
+      });
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('${response.error}')));
     }
@@ -61,27 +65,24 @@ class _LoginState extends State<Login> {
             TextFormField(
                 controller: txtPassword,
                 obscureText: true,
-                validator: (val) => val!.isEmpty ? 'Required min 6 char' : null,
+                validator: (val) =>
+                    val!.length < 6 ? 'Required min 6 char' : null,
                 decoration: kInputDecoration('Password')),
             SizedBox(
               height: 10,
             ),
-            TextButton(
-              child: Text(
-                'Login',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateColor.resolveWith((states) => Colors.blue),
-                  padding: MaterialStateProperty.resolveWith(
-                      (states) => EdgeInsets.symmetric(vertical: 10))),
-              onPressed: () {
-                if (formkey.currentState!.validate()) {
-                  _loginUser();
-                }
-              },
-            ),
+            loading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : kTextButton('Login', () {
+                    if (formkey.currentState!.validate()) {
+                      setState(() {
+                        loading = true;
+                        _loginUser();
+                      });
+                    }
+                  }),
             SizedBox(
               height: 10,
             ),
