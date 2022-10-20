@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/constants.dart';
 import 'package:flutter_application_1/models/api_response.dart';
 import 'package:flutter_application_1/models/post.dart';
+import 'package:flutter_application_1/screens/comment_screen.dart';
 import 'package:flutter_application_1/screens/login.dart';
+import 'package:flutter_application_1/screens/post_form.dart';
 import 'package:flutter_application_1/services/post_service.dart';
 import 'package:flutter_application_1/services/user_service.dart';
 
@@ -28,6 +30,43 @@ class _PostScreenState extends State<PostScreen> {
         _postList = response.data as List<dynamic>;
         _loading = _loading ? !_loading : _loading;
       });
+    } else if (response.error == unauthorized) {
+      logout().then((value) => {
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => Login()),
+                (route) => false)
+          });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${response.error}'),
+      ));
+    }
+  }
+
+  void _handleDeletePost(int postId) async {
+    ApiResponse response = await deletePost(postId);
+
+    if (response.error == null) {
+      retrievePosts();
+    } else if (response.error == unauthorized) {
+      logout().then((value) => {
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => Login()),
+                (route) => false)
+          });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${response.error}'),
+      ));
+    }
+  }
+
+  // post like or dislike
+  void _handlePostLikeDislike(int postId) async {
+    ApiResponse response = await likeUnlikePost(postId);
+
+    if (response.error == null) {
+      retrievePosts();
     } else if (response.error == unauthorized) {
       logout().then((value) => {
             Navigator.of(context).pushAndRemoveUntil(
@@ -115,8 +154,15 @@ class _PostScreenState extends State<PostScreen> {
                                     onSelected: (val) {
                                       if (val == 'edit') {
                                         //edit
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                                builder: (context) => PostForm(
+                                                      title: 'Edit Post',
+                                                      post: post,
+                                                    )));
                                       } else {
                                         //delete
+                                        _handleDeletePost(post.id ?? 0);
                                       }
                                     })
                                 : SizedBox()
@@ -146,15 +192,19 @@ class _PostScreenState extends State<PostScreen> {
                                     : Icons.favorite_outline,
                                 post.selfLiked == true
                                     ? Colors.red
-                                    : Colors.black38,
-                                () {}),
+                                    : Colors.black38, () {
+                              _handlePostLikeDislike(post.id ?? 0);
+                            }),
                             Container(
                               height: 25,
                               width: 0.5,
                               color: Colors.black38,
                             ),
                             kLikeAndComment(post.commentsCount ?? 0,
-                                Icons.sms_outlined, Colors.black38, () {}),
+                                Icons.sms_outlined, Colors.black54, () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => CommentScreen()));
+                            }),
                           ],
                         )
                       ],
