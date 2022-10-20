@@ -7,7 +7,6 @@ import '../models/comment.dart';
 import 'user_service.dart';
 
 // Get post comments
-
 Future<ApiResponse> getComments(int postId) async {
   ApiResponse apiResponse = ApiResponse();
   try {

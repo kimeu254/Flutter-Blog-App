@@ -203,7 +203,9 @@ class _PostScreenState extends State<PostScreen> {
                             kLikeAndComment(post.commentsCount ?? 0,
                                 Icons.sms_outlined, Colors.black54, () {
                               Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => CommentScreen()));
+                                  builder: (context) => CommentScreen(
+                                    postId: post.id,
+                                  )));
                             }),
                           ],
                         )
